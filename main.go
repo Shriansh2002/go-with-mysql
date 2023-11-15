@@ -3,6 +3,7 @@ package main
 import (
 	"database/sql"
 	"fmt"
+	"log"
 	"os"
 
 	_ "github.com/go-sql-driver/mysql"
@@ -40,7 +41,7 @@ func showData(db *sql.DB, tableName string) {
 
 	rows, err := db.Query(sqlCommand)
 	if err != nil {
-		panic(err.Error())
+		log.Fatal("Error fetching data:", err)
 	}
 	defer rows.Close()
 
@@ -50,13 +51,13 @@ func showData(db *sql.DB, tableName string) {
 		var isPublished bool
 		err = rows.Scan(&id, &name, &isPublished)
 		if err != nil {
-			panic(err.Error())
+			log.Fatal("Error fetching data:", err)
 		}
 		fmt.Println(id, name, isPublished)
 	}
 
 	if err = rows.Err(); err != nil {
-		panic(err.Error())
+		log.Fatal("Error fetching data:", err)
 	}
 }
 
@@ -65,7 +66,7 @@ func createTable(db *sql.DB, tableName string) {
 
 	_, err := db.Exec(sqlCommand)
 	if err != nil {
-		panic(err.Error())
+		log.Fatal("Error creating table:", err)
 	}
 }
 
@@ -74,7 +75,7 @@ func dropTable(db *sql.DB, tableName string) {
 
 	_, err := db.Exec(sqlCommand)
 	if err != nil {
-		panic(err.Error())
+		log.Fatal("Error dropping table:", err)
 	}
 }
 
@@ -83,29 +84,31 @@ func insertData(db *sql.DB, tableName string) {
 
 	stmt, err := db.Prepare(sqlCommand)
 	if err != nil {
-		panic(err.Error())
+		log.Fatal("Error in preparing SQL statement:", err)
 	}
 
 	_, err = stmt.Exec(1, "Golang", true)
 	if err != nil {
-		panic(err.Error())
+		log.Fatal("Error in Inserting Data", err)
 	}
 
 	_, err = stmt.Exec(2, "Python", true)
 	if err != nil {
-		panic(err.Error())
+		log.Fatal("Error in Inserting Data", err)
 	}
 
 	_, err = stmt.Exec(3, "Java", true)
 	if err != nil {
-		panic(err.Error())
+		log.Fatal("Error in Inserting Data", err)
 	}
 }
 
 func main() {
+	log.SetFlags(log.LstdFlags | log.Lshortfile)
+
 	dbConfig, err := loadDBConfig()
 	if err != nil {
-		fmt.Println("Error:", err)
+		log.Fatalf("Error loading database configuration: %s", err)
 		return
 	}
 
@@ -120,15 +123,15 @@ func main() {
 
 	tableName := "Stack"
 
-    db, err := sql.Open("mysql", connectionString)
+	db, err := sql.Open("mysql", connectionString)
 	if err != nil {
-		panic(err.Error())
+		log.Fatalf("Error connecting to the database: %s", err)
 	}
 	defer db.Close()
 
 	err = db.Ping()
 	if err != nil {
-		panic(err.Error()) // proper error handling instead of panic in your app
+		log.Fatalf("Error pinging the database: %s", err)
 	}
 
 	// createTable(db, tableName)
