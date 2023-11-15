@@ -3,12 +3,37 @@ package main
 import (
 	"database/sql"
 	"fmt"
-	"log"
 	"os"
 
 	_ "github.com/go-sql-driver/mysql"
 	"github.com/joho/godotenv"
 )
+
+// DBConfig is a struct to store database configuration
+type DBConfig struct {
+	Username   string
+	Password   string
+	Host       string
+	Port       string
+	Database   string
+}
+
+func loadDBConfig() (*DBConfig, error) {
+	err := godotenv.Load(".env")
+	if err != nil {
+		return nil, fmt.Errorf("error loading .env file: %s", err)
+	}
+
+	dbConfig := &DBConfig{
+		Username: os.Getenv("USERNAME"),
+		Password: os.Getenv("PASSWORD"),
+		Host:     os.Getenv("HOST"),
+		Port:     os.Getenv("PORT"),
+		Database: os.Getenv("DATABASE"),
+	}
+
+	return dbConfig, nil
+}
 
 func showData(db *sql.DB, tableName string) {
 	sqlCommand := fmt.Sprintf("SELECT * FROM %s", tableName)
@@ -78,18 +103,20 @@ func insertData(db *sql.DB, tableName string) {
 }
 
 func main() {
-	err := godotenv.Load(".env")
-	if err != nil{
-	log.Fatalf("Error loading .env file: %s", err)
+	dbConfig, err := loadDBConfig()
+	if err != nil {
+		fmt.Println("Error:", err)
+		return
 	}
 
-	username := os.Getenv("USERNAME")
-	password := os.Getenv("PASSWORD")
-	host := os.Getenv("HOST")
-	port := os.Getenv("PORT")
-	database := os.Getenv("DATABASE")
-
-	connectionString := fmt.Sprintf("%s:%s@tcp(%s:%s)/%s", username, password, host, port, database)
+	connectionString := fmt.Sprintf(
+		"%s:%s@tcp(%s:%s)/%s",
+		dbConfig.Username,
+		dbConfig.Password,
+		dbConfig.Host,
+		dbConfig.Port,
+		dbConfig.Database,
+	)
 
 	tableName := "Stack"
 
